@@ -4,27 +4,33 @@ import math
 # ---------- PAGE CONFIG ----------
 st.set_page_config(page_title="Scientific Calculator", page_icon="🧮", layout="centered")
 
-# ---------- THEME SETTINGS ----------
+# ---------- THEME TOGGLE ----------
 st.sidebar.title("⚙️ Settings")
 theme = st.sidebar.radio("Select Theme:", ["Light", "Dark"])
 
-# Define color palettes
+# ---------- COLOR THEMES ----------
 if theme == "Dark":
-    background = "#0F172A"
-    card_bg = "rgba(30, 41, 59, 0.9)"
-    text_color = "#F8FAFC"
+    background = "#0E1628"
+    card_bg = "rgba(18, 26, 41, 0.85)"
     display_gradient = "linear-gradient(90deg, #3B82F6, #06B6D4)"
-    btn_bg = "#1E293B"
-    hover_bg = "#3B82F6"
-    shadow = "0 4px 12px rgba(0, 0, 0, 0.3)"
+    text_color = "#E2E8F0"
+    num_btn = "#1E293B"
+    op_btn = "#3B82F6"
+    func_btn = "#475569"
+    action_btn = "#0EA5E9"
+    hover_glow = "0 0 12px rgba(59,130,246,0.7)"
+    shadow = "0 4px 15px rgba(0, 0, 0, 0.4)"
 else:
-    background = "#F1F5F9"
-    card_bg = "rgba(255, 255, 255, 0.9)"
+    background = "#F4F1EE"
+    card_bg = "rgba(255, 255, 255, 0.95)"
+    display_gradient = "linear-gradient(90deg, #F59E0B, #F97316)"
     text_color = "#1E293B"
-    display_gradient = "linear-gradient(90deg, #2563EB, #0EA5E9)"
-    btn_bg = "#FFFFFF"
-    hover_bg = "#2563EB"
-    shadow = "0 4px 12px rgba(0, 0, 0, 0.15)"
+    num_btn = "#F3F4F6"
+    op_btn = "#FBBF24"
+    func_btn = "#E2E8F0"
+    action_btn = "#F97316"
+    hover_glow = "0 0 12px rgba(249,115,22,0.6)"
+    shadow = "0 4px 15px rgba(0, 0, 0, 0.1)"
 
 # ---------- STYLING ----------
 st.markdown(
@@ -33,7 +39,7 @@ st.markdown(
     body {{
         background-color: {background};
         color: {text_color};
-        font-family: 'Segoe UI', sans-serif;
+        font-family: 'Poppins', sans-serif;
     }}
     .main {{
         display: flex;
@@ -42,26 +48,25 @@ st.markdown(
     }}
     .calc-container {{
         background: {card_bg};
-        backdrop-filter: blur(15px);
-        border-radius: 25px;
-        padding: 30px;
+        backdrop-filter: blur(20px);
+        border-radius: 30px;
+        padding: 35px 25px;
         box-shadow: {shadow};
-        width: 340px;
+        width: 360px;
+        transition: all 0.3s ease;
     }}
     .display {{
         background: {display_gradient};
         color: white;
-        border-radius: 15px;
-        padding: 15px;
+        border-radius: 18px;
+        padding: 15px 20px;
         text-align: right;
-        font-size: 30px;
+        font-size: 32px;
         font-weight: 600;
-        margin-bottom: 20px;
+        margin-bottom: 25px;
         box-shadow: inset 0 2px 5px rgba(0,0,0,0.2);
     }}
     .stButton > button {{
-        background-color: {btn_bg};
-        color: {text_color};
         border: none;
         border-radius: 50%;
         height: 60px;
@@ -69,13 +74,30 @@ st.markdown(
         font-size: 18px;
         font-weight: 500;
         margin: 6px;
-        box-shadow: {shadow};
         transition: all 0.2s ease;
+        box-shadow: {shadow};
     }}
     .stButton > button:hover {{
-        background-color: {hover_bg};
-        color: white !important;
         transform: scale(1.07);
+        box-shadow: {hover_glow};
+    }}
+    /* Button Colors */
+    .num button {{
+        background-color: {num_btn};
+        color: {text_color};
+    }}
+    .op button {{
+        background-color: {op_btn};
+        color: white;
+    }}
+    .func button {{
+        background-color: {func_btn};
+        color: {text_color};
+    }}
+    .act button {{
+        background-color: {action_btn};
+        color: white;
+        font-weight: 600;
     }}
     .footer {{
         text-align: center;
@@ -87,9 +109,6 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
-
-# ---------- APP TITLE ----------
-st.markdown("<h2 style='text-align:center; margin-bottom:20px;'>🧮 Scientific Calculator</h2>", unsafe_allow_html=True)
 
 # ---------- SESSION STATE ----------
 if "expression" not in st.session_state:
@@ -121,37 +140,42 @@ def calculate():
     except Exception:
         st.session_state.expression = "Error"
 
-# ---------- CALCULATOR UI ----------
+# ---------- LAYOUT ----------
 st.markdown("<div class='main'><div class='calc-container'>", unsafe_allow_html=True)
 st.markdown(f"<div class='display'>{st.session_state.expression or '0'}</div>", unsafe_allow_html=True)
 
-# Scientific Buttons
-scientific_buttons = ["sin(", "cos(", "tan(", "log(", "pi", "e"]
+# Scientific buttons
+st.markdown("<div class='func'>", unsafe_allow_html=True)
 cols = st.columns(6)
-for i, label in enumerate(scientific_buttons):
+for i, label in enumerate(["sin(", "cos(", "tan(", "log(", "pi", "e"]):
     cols[i].button(label, on_click=add_input, args=(label,))
+st.markdown("</div>", unsafe_allow_html=True)
 
-# Main Buttons
+# Numeric and operator buttons
 buttons = [
-    ["%", "(", ")", "⌫"],
-    ["7", "8", "9", "/"],
-    ["4", "5", "6", "*"],
-    ["1", "2", "3", "-"],
-    ["0", ".", "^", "+"],
+    [("%", "func"), ("(", "func"), (")", "func"), ("⌫", "act")],
+    [("7", "num"), ("8", "num"), ("9", "num"), ("/", "op")],
+    [("4", "num"), ("5", "num"), ("6", "num"), ("*", "op")],
+    [("1", "num"), ("2", "num"), ("3", "num"), ("-", "op")],
+    [("0", "num"), (".", "num"), ("^", "op"), ("+", "op")],
 ]
 
 for row in buttons:
     cols = st.columns(4)
-    for i, label in enumerate(row):
+    for i, (label, style_class) in enumerate(row):
+        st.markdown(f"<div class='{style_class}'>", unsafe_allow_html=True)
         if label == "⌫":
             cols[i].button(label, on_click=backspace)
         else:
             cols[i].button(label, on_click=add_input, args=(label,))
+        st.markdown("</div>", unsafe_allow_html=True)
 
-# Bottom buttons
+# Bottom action buttons
 col1, col2 = st.columns(2)
+st.markdown("<div class='act'>", unsafe_allow_html=True)
 col1.button("C", on_click=clear)
 col2.button("=", on_click=calculate)
+st.markdown("</div>", unsafe_allow_html=True)
 
 st.markdown("</div></div>", unsafe_allow_html=True)
 st.markdown("<div class='footer'>Developed by your hired developer 💻</div>", unsafe_allow_html=True)
