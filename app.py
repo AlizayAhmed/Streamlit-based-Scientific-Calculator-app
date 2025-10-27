@@ -1,14 +1,13 @@
 import streamlit as st
 import math
 
-# --- PAGE CONFIG ---
 st.set_page_config(page_title="Scientific Calculator", layout="centered")
 
 # --- INITIAL STATE ---
 if "expression" not in st.session_state:
     st.session_state.expression = ""
 
-# --- CUSTOM STYLES ---
+# --- CUSTOM CSS ---
 st.markdown("""
     <style>
     html, body, [class*="css"] {
@@ -29,20 +28,21 @@ st.markdown("""
     .calculator {
         background-color: #ffffff;
         border-radius: 25px;
-        box-shadow: 0px 15px 35px rgba(0, 0, 0, 0.15);
+        box-shadow: 0px 10px 25px rgba(0, 0, 0, 0.15);
         width: 340px;
-        padding: 25px 20px;
+        padding: 25px;
+        text-align: center;
     }
 
     .display {
         background: linear-gradient(135deg, #2e8fff, #559dff);
         color: white;
         border-radius: 15px;
-        text-align: right;
         font-size: 30px;
         font-weight: 600;
-        padding: 18px;
-        margin-bottom: 18px;
+        text-align: right;
+        padding: 18px 15px;
+        margin-bottom: 20px;
         overflow-x: auto;
     }
 
@@ -51,6 +51,7 @@ st.markdown("""
         grid-template-columns: repeat(4, 1fr);
         gap: 12px;
         justify-items: center;
+        align-items: center;
     }
 
     button {
@@ -63,9 +64,10 @@ st.markdown("""
         cursor: pointer;
         color: #1f2937;
         background: #e7ebf2;
-        box-shadow: 0px 4px 8px rgba(0,0,0,0.08);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         transition: all 0.2s ease-in-out;
     }
+
     button:hover {
         transform: scale(1.07);
     }
@@ -74,6 +76,10 @@ st.markdown("""
     .clear { background-color: #ef4444; color: white; }
     .equal { background-color: #22c55e; color: white; }
     .scientific { background-color: #a78bfa; color: white; }
+
+    .btn-form {
+        margin: 0;
+    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -102,7 +108,7 @@ def evaluate_expression(expr):
     except:
         return "Error"
 
-# --- BUTTON ACTIONS ---
+# --- BUTTON HANDLING VIA FORMS (to preserve CSS grid alignment) ---
 for row in buttons:
     for btn in row:
         if btn:
@@ -112,17 +118,18 @@ for row in buttons:
             if btn == "=": btn_class = "equal"
             if btn in ["sin", "cos", "tan", "log", "π", "e", "^"]: btn_class = "scientific"
 
-            if st.button(btn, key=btn):
-                if btn == "C":
-                    st.session_state.expression = ""
-                elif btn == "CE":
-                    st.session_state.expression = st.session_state.expression[:-1]
-                elif btn == "=":
-                    st.session_state.expression = evaluate_expression(st.session_state.expression)
-                elif btn in ["sin", "cos", "tan", "log", "√"]:
-                    st.session_state.expression += f"math.{btn}("
-                else:
-                    st.session_state.expression += btn
+            with st.form(key=f"form_{btn}", clear_on_submit=True):
+                if st.form_submit_button(btn):
+                    if btn == "C":
+                        st.session_state.expression = ""
+                    elif btn == "CE":
+                        st.session_state.expression = st.session_state.expression[:-1]
+                    elif btn == "=":
+                        st.session_state.expression = evaluate_expression(st.session_state.expression)
+                    elif btn in ["sin", "cos", "tan", "log", "√"]:
+                        st.session_state.expression += f"math.{btn}("
+                    else:
+                        st.session_state.expression += btn
 
 st.markdown("</div>", unsafe_allow_html=True)
 st.markdown("</div>", unsafe_allow_html=True)
