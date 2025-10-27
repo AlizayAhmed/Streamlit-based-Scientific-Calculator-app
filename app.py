@@ -45,4 +45,4 @@ st.markdown("""
 👉 Angles are in degrees for trig functions.
 """)
 
-st.caption("Developed by your hired developer 💻")
+st.caption("Developed by Alizay Ahmed")
