@@ -6,15 +6,19 @@ st.set_page_config(page_title="Scientific Calculator", layout="centered")
 # --- INITIAL STATE ---
 if "expression" not in st.session_state:
     st.session_state.expression = ""
+if "display" not in st.session_state:
+    st.session_state.display = "0"
 
 # --- CUSTOM CSS ---
 st.markdown("""
     <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+    
     html, body, [class*="css"] {
         height: 100%;
         overflow: hidden !important;
-        background-color: #f3f6fb;
-        font-family: 'Segoe UI', sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        font-family: 'Inter', sans-serif;
     }
 
     .stApp {
@@ -22,114 +26,189 @@ st.markdown("""
         justify-content: center;
         align-items: center;
         height: 100vh;
-        background: linear-gradient(145deg, #f5f7fa, #e4ebf3);
+    }
+    
+    /* Hide Streamlit elements */
+    #MainMenu, footer, header {visibility: hidden;}
+    .stDeployButton {display: none;}
+
+    .calculator-container {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 30px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        width: 320px;
+        padding: 30px 25px;
     }
 
-    .calculator {
-        background-color: #ffffff;
-        border-radius: 25px;
-        box-shadow: 0px 10px 25px rgba(0, 0, 0, 0.15);
-        width: 340px;
-        padding: 25px;
-        text-align: center;
-    }
-
-    .display {
-        background: linear-gradient(135deg, #2e8fff, #559dff);
+    .display-box {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
-        border-radius: 15px;
-        font-size: 30px;
+        border-radius: 20px;
+        font-size: 36px;
         font-weight: 600;
         text-align: right;
-        padding: 18px 15px;
-        margin-bottom: 20px;
+        padding: 20px;
+        margin-bottom: 25px;
+        min-height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
         overflow-x: auto;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
     }
 
     .button-grid {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
         gap: 12px;
-        justify-items: center;
-        align-items: center;
     }
 
-    button {
-        border: none;
-        border-radius: 50%;
-        width: 65px;
-        height: 65px;
-        font-size: 20px;
-        font-weight: 600;
-        cursor: pointer;
-        color: #1f2937;
-        background: #e7ebf2;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        transition: all 0.2s ease-in-out;
+    .stButton {
+        width: 100%;
+        height: 100%;
     }
 
-    button:hover {
-        transform: scale(1.07);
+    .stButton > button {
+        width: 65px !important;
+        height: 65px !important;
+        border-radius: 50% !important;
+        border: none !important;
+        font-size: 20px !important;
+        font-weight: 600 !important;
+        cursor: pointer !important;
+        transition: all 0.2s ease !important;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1) !important;
+        padding: 0 !important;
     }
 
-    .operator { background-color: #3b82f6; color: white; }
-    .clear { background-color: #ef4444; color: white; }
-    .equal { background-color: #22c55e; color: white; }
-    .scientific { background-color: #a78bfa; color: white; }
+    .stButton > button:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15) !important;
+    }
 
-    .btn-form {
-        margin: 0;
+    .stButton > button:active {
+        transform: translateY(0) !important;
+    }
+
+    /* Number buttons - light purple */
+    .btn-number > button {
+        background: #e8eaf6 !important;
+        color: #1a1a2e !important;
+    }
+
+    /* Operator buttons - blue */
+    .btn-operator > button {
+        background: #2196F3 !important;
+        color: white !important;
+    }
+
+    /* Clear button - dark blue */
+    .btn-clear > button {
+        background: #1a237e !important;
+        color: white !important;
+    }
+
+    /* Delete button - red */
+    .btn-delete > button {
+        background: #f44336 !important;
+        color: white !important;
+    }
+
+    /* Equal button - green */
+    .btn-equal > button {
+        background: #4CAF50 !important;
+        color: white !important;
+    }
+
+    /* Special function buttons - yellow/orange */
+    .btn-special > button {
+        background: #FFC107 !important;
+        color: #1a1a2e !important;
+    }
+
+    .stButton > button p {
+        margin: 0 !important;
+        padding: 0 !important;
     }
     </style>
 """, unsafe_allow_html=True)
 
-# --- DISPLAY ---
-st.markdown("<div class='calculator'>", unsafe_allow_html=True)
-st.markdown(f"<div class='display'>{st.session_state.expression or '0'}</div>", unsafe_allow_html=True)
+# --- FUNCTIONS ---
+def append_to_expression(value):
+    if st.session_state.display == "0" or st.session_state.display == "Error":
+        st.session_state.expression = value
+        st.session_state.display = value
+    else:
+        st.session_state.expression += value
+        st.session_state.display = st.session_state.expression
+
+def clear_all():
+    st.session_state.expression = ""
+    st.session_state.display = "0"
+
+def delete_last():
+    if st.session_state.expression:
+        st.session_state.expression = st.session_state.expression[:-1]
+        st.session_state.display = st.session_state.expression if st.session_state.expression else "0"
+
+def calculate():
+    try:
+        expr = st.session_state.expression
+        expr = expr.replace("×", "*").replace("÷", "/").replace("^", "**")
+        expr = expr.replace("π", str(math.pi)).replace("√", "math.sqrt")
+        
+        result = eval(expr, {"math": math, "__builtins__": None})
+        
+        if isinstance(result, float):
+            if result.is_integer():
+                result = int(result)
+            else:
+                result = round(result, 8)
+        
+        st.session_state.display = str(result)
+        st.session_state.expression = str(result)
+    except:
+        st.session_state.display = "Error"
+        st.session_state.expression = ""
+
+# --- LAYOUT ---
+st.markdown("<div class='calculator-container'>", unsafe_allow_html=True)
+st.markdown(f"<div class='display-box'>{st.session_state.display}</div>", unsafe_allow_html=True)
 st.markdown("<div class='button-grid'>", unsafe_allow_html=True)
 
-# --- BUTTONS ---
+# Button layout matching the image
 buttons = [
-    ["%", "√", "CE", "C"],
-    ["sin", "cos", "tan", "log"],
-    ["π", "e", "^", "÷"],
-    ["7", "8", "9", "×"],
-    ["4", "5", "6", "-"],
-    ["1", "2", "3", "+"],
-    ["0", ".", "=", ""]
+    ("%", "special"), ("√", "special"), ("CE", "delete"), ("C", "clear"),
+    ("7", "number"), ("8", "number"), ("9", "number"), ("÷", "operator"),
+    ("4", "number"), ("5", "number"), ("6", "number"), ("×", "operator"),
+    ("1", "number"), ("2", "number"), ("3", "number"), ("-", "operator"),
+    (".", "number"), ("0", "number"), ("=", "equal"), ("+", "operator"),
 ]
 
-def evaluate_expression(expr):
-    expr = expr.replace("×", "*").replace("÷", "/").replace("^", "**").replace("π", str(math.pi)).replace("e", str(math.e))
-    expr = expr.replace("√", "math.sqrt")
-    try:
-        result = eval(expr, {"math": math, "__builtins__": None})
-        return str(round(result, 10))
-    except:
-        return "Error"
+# Create buttons in a 4-column layout
+cols = st.columns(4)
 
-# --- BUTTON HANDLING VIA FORMS (to preserve CSS grid alignment) ---
-for row in buttons:
-    for btn in row:
-        if btn:
-            btn_class = ""
-            if btn in ["+", "-", "×", "÷", "%", "√"]: btn_class = "operator"
-            if btn in ["C", "CE"]: btn_class = "clear"
-            if btn == "=": btn_class = "equal"
-            if btn in ["sin", "cos", "tan", "log", "π", "e", "^"]: btn_class = "scientific"
-
-            with st.form(key=f"form_{btn}", clear_on_submit=True):
-                if st.form_submit_button(btn):
-                    if btn == "C":
-                        st.session_state.expression = ""
-                    elif btn == "CE":
-                        st.session_state.expression = st.session_state.expression[:-1]
-                    elif btn == "=":
-                        st.session_state.expression = evaluate_expression(st.session_state.expression)
-                    elif btn in ["sin", "cos", "tan", "log", "√"]:
-                        st.session_state.expression += f"math.{btn}("
-                    else:
-                        st.session_state.expression += btn
+for i, (btn_text, btn_class) in enumerate(buttons):
+    col_idx = i % 4
+    
+    with cols[col_idx]:
+        st.markdown(f"<div class='btn-{btn_class}'>", unsafe_allow_html=True)
+        
+        if st.button(btn_text, key=f"btn_{i}"):
+            if btn_text == "C":
+                clear_all()
+            elif btn_text == "CE":
+                delete_last()
+            elif btn_text == "=":
+                calculate()
+            elif btn_text == "√":
+                append_to_expression("math.sqrt(")
+            else:
+                append_to_expression(btn_text)
+            st.rerun()
+        
+        st.markdown("</div>", unsafe_allow_html=True)
 
 st.markdown("</div>", unsafe_allow_html=True)
 st.markdown("</div>", unsafe_allow_html=True)
