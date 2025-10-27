@@ -4,74 +4,83 @@ import math
 # --- PAGE CONFIG ---
 st.set_page_config(page_title="Scientific Calculator", layout="centered")
 
-# --- STYLE HELPER ---
-def load_custom_css():
-    st.markdown("""
-        <style>
-        body {
-            background-color: #F3F6FA;
-        }
-        .main {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-        .calculator {
-            background-color: #FFFFFF;
-            border-radius: 25px;
-            padding: 20px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-            width: 320px;
-        }
-        .display {
-            background-color: #2E8FFF;
-            color: white;
-            border-radius: 15px;
-            text-align: right;
-            font-size: 28px;
-            font-weight: bold;
-            padding: 15px;
-            margin-bottom: 20px;
-            overflow-x: auto;
-        }
-        .button-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-        }
-        button {
-            background: #E5E7EB;
-            border: none;
-            border-radius: 50%;
-            width: 60px;
-            height: 60px;
-            font-size: 18px;
-            font-weight: 600;
-            color: #111827;
-            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
-            transition: 0.2s;
-        }
-        button:hover {
-            transform: scale(1.07);
-        }
-        .operator { background-color: #3B82F6; color: white; }
-        .clear { background-color: #F43F5E; color: white; }
-        .equal { background-color: #22C55E; color: white; }
-        .scientific { background-color: #A5B4FC; color: #1E3A8A; }
-        </style>
-    """, unsafe_allow_html=True)
-
-
-# --- INIT STATE ---
+# --- INITIAL STATE ---
 if "expression" not in st.session_state:
     st.session_state.expression = ""
 
-# --- APP UI ---
-load_custom_css()
+# --- CUSTOM STYLES ---
+st.markdown("""
+    <style>
+    html, body, [class*="css"] {
+        height: 100%;
+        overflow: hidden !important;
+        background-color: #f3f6fb;
+        font-family: 'Segoe UI', sans-serif;
+    }
 
+    .stApp {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background: linear-gradient(145deg, #f5f7fa, #e4ebf3);
+    }
+
+    .calculator {
+        background-color: #ffffff;
+        border-radius: 25px;
+        box-shadow: 0px 15px 35px rgba(0, 0, 0, 0.15);
+        width: 340px;
+        padding: 25px 20px;
+    }
+
+    .display {
+        background: linear-gradient(135deg, #2e8fff, #559dff);
+        color: white;
+        border-radius: 15px;
+        text-align: right;
+        font-size: 30px;
+        font-weight: 600;
+        padding: 18px;
+        margin-bottom: 18px;
+        overflow-x: auto;
+    }
+
+    .button-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        justify-items: center;
+    }
+
+    button {
+        border: none;
+        border-radius: 50%;
+        width: 65px;
+        height: 65px;
+        font-size: 20px;
+        font-weight: 600;
+        cursor: pointer;
+        color: #1f2937;
+        background: #e7ebf2;
+        box-shadow: 0px 4px 8px rgba(0,0,0,0.08);
+        transition: all 0.2s ease-in-out;
+    }
+    button:hover {
+        transform: scale(1.07);
+    }
+
+    .operator { background-color: #3b82f6; color: white; }
+    .clear { background-color: #ef4444; color: white; }
+    .equal { background-color: #22c55e; color: white; }
+    .scientific { background-color: #a78bfa; color: white; }
+    </style>
+""", unsafe_allow_html=True)
+
+# --- DISPLAY ---
 st.markdown("<div class='calculator'>", unsafe_allow_html=True)
 st.markdown(f"<div class='display'>{st.session_state.expression or '0'}</div>", unsafe_allow_html=True)
+st.markdown("<div class='button-grid'>", unsafe_allow_html=True)
 
 # --- BUTTONS ---
 buttons = [
@@ -93,18 +102,17 @@ def evaluate_expression(expr):
     except:
         return "Error"
 
-# --- BUTTON LAYOUT ---
+# --- BUTTON ACTIONS ---
 for row in buttons:
-    st.markdown("<div class='button-row'>", unsafe_allow_html=True)
     for btn in row:
         if btn:
-            button_class = ""
-            if btn in ["+", "-", "×", "÷", "%", "√"]: button_class = "operator"
-            if btn in ["C", "CE"]: button_class = "clear"
-            if btn == "=": button_class = "equal"
-            if btn in ["sin", "cos", "tan", "log", "π", "e", "^"]: button_class = "scientific"
+            btn_class = ""
+            if btn in ["+", "-", "×", "÷", "%", "√"]: btn_class = "operator"
+            if btn in ["C", "CE"]: btn_class = "clear"
+            if btn == "=": btn_class = "equal"
+            if btn in ["sin", "cos", "tan", "log", "π", "e", "^"]: btn_class = "scientific"
 
-            if st.button(btn, key=btn, use_container_width=False):
+            if st.button(btn, key=btn):
                 if btn == "C":
                     st.session_state.expression = ""
                 elif btn == "CE":
@@ -116,6 +124,5 @@ for row in buttons:
                 else:
                     st.session_state.expression += btn
 
-    st.markdown("</div>", unsafe_allow_html=True)
-
+st.markdown("</div>", unsafe_allow_html=True)
 st.markdown("</div>", unsafe_allow_html=True)
