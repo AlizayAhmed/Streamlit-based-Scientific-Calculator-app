@@ -14,10 +14,18 @@ st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
     
-    html, body, [class*="css"] {
-        height: 100%;
+    /* Remove all default Streamlit padding and styling */
+    .main .block-container {
+        padding: 0 !important;
+        max-width: 100% !important;
+    }
+    
+    html, body, [class*="css"], .stApp {
+        margin: 0;
+        padding: 0;
+        height: 100vh;
         overflow: hidden !important;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: #f0f4f8;
         font-family: 'Inter', sans-serif;
     }
 
@@ -25,111 +33,121 @@ st.markdown("""
         display: flex;
         justify-content: center;
         align-items: center;
-        height: 100vh;
     }
     
-    /* Hide Streamlit elements */
-    #MainMenu, footer, header {visibility: hidden;}
+    /* Hide Streamlit branding */
+    #MainMenu, footer, header {visibility: hidden; height: 0;}
     .stDeployButton {display: none;}
+    
+    /* Calculator Container */
+    .calculator-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100vw;
+        height: 100vh;
+        background: #f0f4f8;
+    }
 
-    .calculator-container {
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(10px);
+    .calculator-frame {
+        background: white;
         border-radius: 30px;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-        width: 320px;
-        padding: 30px 25px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        padding: 25px;
+        width: 350px;
     }
 
     .display-box {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
         border-radius: 20px;
-        font-size: 36px;
+        font-size: 42px;
         font-weight: 600;
         text-align: right;
-        padding: 20px;
-        margin-bottom: 25px;
-        min-height: 60px;
+        padding: 25px 20px;
+        margin-bottom: 20px;
+        min-height: 70px;
         display: flex;
         align-items: center;
         justify-content: flex-end;
-        overflow-x: auto;
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        word-break: break-all;
     }
 
-    .button-grid {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 12px;
+    /* Button Grid */
+    .calc-row {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 10px;
+        justify-content: center;
     }
 
+    /* All buttons base style */
+    div[data-testid="column"] {
+        padding: 0 !important;
+    }
+    
     .stButton {
         width: 100%;
-        height: 100%;
     }
 
     .stButton > button {
-        width: 65px !important;
-        height: 65px !important;
+        width: 70px !important;
+        height: 70px !important;
         border-radius: 50% !important;
         border: none !important;
-        font-size: 20px !important;
-        font-weight: 600 !important;
+        font-size: 22px !important;
+        font-weight: 500 !important;
         cursor: pointer !important;
-        transition: all 0.2s ease !important;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1) !important;
+        transition: all 0.15s ease !important;
         padding: 0 !important;
+        margin: 0 !important;
     }
 
     .stButton > button:hover {
-        transform: translateY(-2px) !important;
-        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15) !important;
+        transform: scale(1.05) !important;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2) !important;
     }
 
     .stButton > button:active {
-        transform: translateY(0) !important;
+        transform: scale(0.98) !important;
     }
 
-    /* Number buttons - light purple */
+    /* Button Colors */
+    
+    /* Numbers - Light Gray */
     .btn-number > button {
-        background: #e8eaf6 !important;
-        color: #1a1a2e !important;
+        background: #e5e7eb !important;
+        color: #1f2937 !important;
     }
 
-    /* Operator buttons - blue */
+    /* Operators - Blue */
     .btn-operator > button {
-        background: #2196F3 !important;
+        background: #3b82f6 !important;
         color: white !important;
     }
 
-    /* Clear button - dark blue */
+    /* Clear - Red */
     .btn-clear > button {
-        background: #1a237e !important;
+        background: #ef4444 !important;
         color: white !important;
     }
 
-    /* Delete button - red */
+    /* Delete - Orange/Red */
     .btn-delete > button {
-        background: #f44336 !important;
+        background: #f97316 !important;
         color: white !important;
     }
 
-    /* Equal button - green */
+    /* Equal - Green */
     .btn-equal > button {
-        background: #4CAF50 !important;
+        background: #22c55e !important;
         color: white !important;
     }
 
-    /* Special function buttons - yellow/orange */
+    /* Special - Yellow */
     .btn-special > button {
-        background: #FFC107 !important;
-        color: #1a1a2e !important;
-    }
-
-    .stButton > button p {
-        margin: 0 !important;
-        padding: 0 !important;
+        background: #eab308 !important;
+        color: #1f2937 !important;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -173,42 +191,41 @@ def calculate():
         st.session_state.expression = ""
 
 # --- LAYOUT ---
-st.markdown("<div class='calculator-container'>", unsafe_allow_html=True)
+st.markdown("<div class='calculator-wrapper'><div class='calculator-frame'>", unsafe_allow_html=True)
 st.markdown(f"<div class='display-box'>{st.session_state.display}</div>", unsafe_allow_html=True)
-st.markdown("<div class='button-grid'>", unsafe_allow_html=True)
 
-# Button layout matching the image
-buttons = [
-    ("%", "special"), ("√", "special"), ("CE", "delete"), ("C", "clear"),
-    ("7", "number"), ("8", "number"), ("9", "number"), ("÷", "operator"),
-    ("4", "number"), ("5", "number"), ("6", "number"), ("×", "operator"),
-    ("1", "number"), ("2", "number"), ("3", "number"), ("-", "operator"),
-    (".", "number"), ("0", "number"), ("=", "equal"), ("+", "operator"),
+# Button layout - 5 rows of 4 buttons
+button_rows = [
+    [("%", "special"), ("√", "special"), ("CE", "delete"), ("C", "clear")],
+    [("7", "number"), ("8", "number"), ("9", "number"), ("÷", "operator")],
+    [("4", "number"), ("5", "number"), ("6", "number"), ("×", "operator")],
+    [("1", "number"), ("2", "number"), ("3", "number"), ("-", "operator")],
+    [(".", "number"), ("0", "number"), ("=", "equal"), ("+", "operator")],
 ]
 
-# Create buttons in a 4-column layout
-cols = st.columns(4)
-
-for i, (btn_text, btn_class) in enumerate(buttons):
-    col_idx = i % 4
+for row_idx, row in enumerate(button_rows):
+    st.markdown(f"<div class='calc-row'>", unsafe_allow_html=True)
+    cols = st.columns(4)
     
-    with cols[col_idx]:
-        st.markdown(f"<div class='btn-{btn_class}'>", unsafe_allow_html=True)
-        
-        if st.button(btn_text, key=f"btn_{i}"):
-            if btn_text == "C":
-                clear_all()
-            elif btn_text == "CE":
-                delete_last()
-            elif btn_text == "=":
-                calculate()
-            elif btn_text == "√":
-                append_to_expression("math.sqrt(")
-            else:
-                append_to_expression(btn_text)
-            st.rerun()
-        
-        st.markdown("</div>", unsafe_allow_html=True)
+    for col_idx, (btn_text, btn_class) in enumerate(row):
+        with cols[col_idx]:
+            st.markdown(f"<div class='btn-{btn_class}'>", unsafe_allow_html=True)
+            
+            if st.button(btn_text, key=f"btn_{row_idx}_{col_idx}"):
+                if btn_text == "C":
+                    clear_all()
+                elif btn_text == "CE":
+                    delete_last()
+                elif btn_text == "=":
+                    calculate()
+                elif btn_text == "√":
+                    append_to_expression("math.sqrt(")
+                else:
+                    append_to_expression(btn_text)
+                st.rerun()
+            
+            st.markdown("</div>", unsafe_allow_html=True)
+    
+    st.markdown("</div>", unsafe_allow_html=True)
 
-st.markdown("</div>", unsafe_allow_html=True)
-st.markdown("</div>", unsafe_allow_html=True)
+st.markdown("</div></div>", unsafe_allow_html=True)
